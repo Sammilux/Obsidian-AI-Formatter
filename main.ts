@@ -53,7 +53,7 @@ const DEFAULT_SETTINGS: FormatCleanerSettings = {
 };
 
 export default class FormatCleanerPlugin extends Plugin {
-  declare addCommand: (command: any) => void;
+  // Removed incorrect type declaration as it's already defined in Plugin class
   declare saveData: (data: any) => Promise<void>;
   declare loadData: () => Promise<any>;
   settings: FormatCleanerSettings;
