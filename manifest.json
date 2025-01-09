@@ -1,0 +1,9 @@
+{
+  "id": "obsidian-format-cleaner",
+  "name": "Format Cleaner",
+  "version": "1.0.0",
+  "minAppVersion": "0.15.0",
+  "description": "清理文本格式，方便发布到其他平台",
+  "author": "Your Name",
+  "isDesktopOnly": false
+}
