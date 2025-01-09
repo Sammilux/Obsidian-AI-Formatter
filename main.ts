@@ -16,6 +16,7 @@ interface FormatCleanerSettings {
   removeMarkdown: boolean;
   unifyListMarker: boolean;
   autoFormatHeadings: boolean;
+  autoConvertBulletsToHeadings: boolean;
   customReplacements: Array<{from: string, to: string}>;
   defaultAISource: AISource;
   wechatReady: boolean;
@@ -30,6 +31,7 @@ const DEFAULT_SETTINGS: FormatCleanerSettings = {
   removeMarkdown: true,
   unifyListMarker: true,
   autoFormatHeadings: true,
+  autoConvertBulletsToHeadings: false,
   customReplacements: [
     { from: '**', to: '' },
     { from: '*', to: '' },
@@ -135,6 +137,13 @@ export default class FormatCleanerPlugin extends Plugin {
       editorCallback: (editor: Editor) => this.formatAsHeading(editor, 3)
     });
 
+    // Add test command for development
+    this.addCommand({
+      id: 'test-bullet-to-heading',
+      name: 'Test Bullet to Heading Conversion',
+      callback: () => this.testBulletToHeading()
+    });
+
     // 添加插件设置标签页
     this.addSettingTab(new FormatCleanerSettingTab(this.app, this));
   }
@@ -169,6 +178,7 @@ export default class FormatCleanerPlugin extends Plugin {
   cleanFormat(text: string): { result: string; stats: { replacements: number } } {
     const paragraphs = text.split('\n');
     const stats = { replacements: 0 };
+    let lastHeadingLevel = 1; // Track the last heading level for hierarchy
     
     // Show progress notice for large documents
     if (paragraphs.length > 500) {
@@ -198,6 +208,27 @@ export default class FormatCleanerPlugin extends Plugin {
             cleaned = cleaned.replace(regex, to);
           }
         });
+      }
+      
+      // Check for existing headings first to track hierarchy
+      const headingMatch = cleaned.match(/^(#{1,6})\s/);
+      if (headingMatch) {
+        lastHeadingLevel = headingMatch[1].length;
+      }
+      
+      // Convert bullet points with bold titles to headings if enabled
+      if (this.settings.autoConvertBulletsToHeadings) {
+        const bulletHeadingPattern = /^[-*]\s*\*\*(.+?):\*\*\s*(.*)$/;
+        const match = bulletHeadingPattern.exec(cleaned);
+        if (match) {
+          const [_, title, description] = match;
+          // Create heading one level below the last heading
+          const newLevel = Math.min(lastHeadingLevel + 1, 6);
+          cleaned = '#'.repeat(newLevel) + ' ' + title + '\n' + description;
+          lastHeadingLevel = newLevel;
+          stats.replacements++;
+          return cleaned;
+        }
       }
       
       if (this.settings.unifyListMarker) {
@@ -296,6 +327,31 @@ export default class FormatCleanerPlugin extends Plugin {
       new Notice(this.strings.failedToApplyPattern({pattern}));
       return text;
     }
+  }
+
+  // Test function to verify bullet-to-heading conversion
+  testBulletToHeading(): void {
+    const testInput = `# Main Heading
+
+## Section 1
+
+- **Localization Support:** Interface available in English and Chinese.
+- **Enhanced Error Handling:** Mechanisms to handle errors.
+
+## Section 2
+
+- **Performance Optimization:** Pre-compilation of regex patterns.`;
+
+    console.log('=== Test Input ===');
+    console.log(testInput);
+    
+    this.settings.autoConvertBulletsToHeadings = true;
+    const result = this.cleanFormat(testInput);
+    
+    console.log('\n=== Test Output ===');
+    console.log(result.result);
+    console.log('\n=== Stats ===');
+    console.log(`Replacements made: ${result.stats.replacements}`);
   }
 }
 
@@ -452,6 +508,21 @@ class FormatCleanerSettingTab extends PluginSettingTab {
             await this.plugin.saveSettings();
           } catch (error) {
             console.error('Failed to save autoFormatHeadings setting:', error);
+            new Notice(this.plugin.strings.errorSaveSettings);
+          }
+        }));
+
+    new Setting(containerEl)
+      .setName(this.plugin.strings.autoConvertBulletsToHeadings)
+      .setDesc(this.plugin.strings.autoConvertBulletsToHeadingsDesc)
+      .addToggle(toggle => toggle
+        .setValue(this.plugin.settings.autoConvertBulletsToHeadings)
+        .onChange(async (value) => {
+          try {
+            this.plugin.settings.autoConvertBulletsToHeadings = value;
+            await this.plugin.saveSettings();
+          } catch (error) {
+            console.error('Failed to save autoConvertBulletsToHeadings setting:', error);
             new Notice(this.plugin.strings.errorSaveSettings);
           }
         }));

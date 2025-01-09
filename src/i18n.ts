@@ -17,6 +17,8 @@ export interface LocalizedStrings {
   unifyListMarkerDesc: string;
   autoFormatHeadings: string;
   autoFormatHeadingsDesc: string;
+  autoConvertBulletsToHeadings: string;
+  autoConvertBulletsToHeadingsDesc: string;
 
   // AI Settings
   aiSettings: string;
@@ -69,6 +71,8 @@ export const EnglishStrings: LocalizedStrings = {
   unifyListMarkerDesc: 'Convert different list markers to bullet points',
   autoFormatHeadings: 'Auto Format Headings',
   autoFormatHeadingsDesc: 'Ensure space after # in headings',
+  autoConvertBulletsToHeadings: 'Convert Bullets to Headings',
+  autoConvertBulletsToHeadingsDesc: 'Convert "- **Title:** Description" to proper headings',
 
   // AI Settings
   aiSettings: 'AI & Third-Party Settings',
@@ -121,6 +125,8 @@ export const ChineseStrings: LocalizedStrings = {
   unifyListMarkerDesc: '将不同的列表标记统一转换为中文圆点',
   autoFormatHeadings: '自动格式化标题',
   autoFormatHeadingsDesc: '自动规范化标题格式（确保#后有空格）',
+  autoConvertBulletsToHeadings: '将项目符号转换为标题',
+  autoConvertBulletsToHeadingsDesc: '将"- **标题:** 描述"格式转换为适当的标题层级',
 
   // AI Settings
   aiSettings: 'AI 与第三方平台设置',
